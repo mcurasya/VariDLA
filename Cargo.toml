@@ -1,0 +1,10 @@
+[package]
+name = "VariDLA"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+gio = "0.19.8"
+glib = "0.19.9"
+gsk = { version = "0.8.2", package = "gsk4"}
+gtk = { version = "0.8.2", package = "gtk4", features = ["v4_14"] }
