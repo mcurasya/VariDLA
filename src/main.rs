@@ -1,9 +1,14 @@
+use std::fs::read_to_string;
+use std::io;
+
 use glib::clone;
+use glib::property::PropertyGet;
 // glib and other dependencies are re-exported by the gtk crate
 use gtk::glib;
 use gtk::prelude::*;
-use std::io;
-use gio;
+use gtk::AlertDialog;
+use gtk::MessageDialog;
+
 // When the application is launched…
 fn on_activate(application: &gtk::Application) {
     // … create a new window …
@@ -16,8 +21,16 @@ fn on_activate(application: &gtk::Application) {
         .margin_start(10)
         .margin_end(10)
         .build();
-    let gtkbox = gtk::Box::builder()
+    let gtkbox_general = gtk::Box::builder()
+        .orientation(gtk::Orientation::Horizontal)
+        .build();
+    let gtkbox_control = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
+        .build();
+    let gtkbox_veiwer = gtk::Box::builder()
+        .orientation(gtk::Orientation::Vertical)
+        .margin_start(20)
+        .margin_end(20)
         .build();
     // … which closes the window when clicked
     exit_button.connect_clicked(clone!(@weak window => move |_| window.close()));
@@ -38,11 +51,48 @@ fn on_activate(application: &gtk::Application) {
                 println!("{:#?}", contents);
             }
         });
-        
     }));
-    gtkbox.append(&choose_file_button);
-    gtkbox.append(&exit_button);
-    window.set_child(Some(&gtkbox));
+    let show_simulation_checkbox = gtk::CheckButton::builder()
+        .label("show random movement simulation")
+        .build();
+    let start_button = gtk::Button::builder()
+        .label("start simulation")
+        .margin_bottom(10)
+        .margin_top(10)
+        .margin_start(10)
+        .margin_end(10)
+        .build();
+    let particles_number = gtk::TextView::builder()
+        .height_request(20)
+        .margin_bottom(10)
+        .margin_top(10)
+        .margin_start(10)
+        .margin_end(10)
+        .build();
+    gtkbox_control.append(&choose_file_button);
+    gtkbox_control.append(&show_simulation_checkbox);
+    gtkbox_control.append(&particles_number);
+    start_button.connect_clicked(clone!(@weak window => move |_| {
+        let buffer = particles_number.buffer();
+        let (start, end) = buffer.bounds();
+        let text = buffer.text(&start, &end, true);
+        let nb_particles = text.parse::<u32>();
+        match nb_particles {
+            Ok(nb) => println!("{:#?}", nb),
+            Err(e) => {
+                AlertDialog::builder().message(e.to_string()).build().show(Some(&window));
+            }
+
+        }
+
+        println!("{:#?}", show_simulation_checkbox.is_active());
+
+    }));
+    gtkbox_control.append(&start_button);
+    gtkbox_control.append(&exit_button);
+    gtkbox_general.append(&gtkbox_control);
+    gtkbox_general.append(&gtkbox_veiwer);
+    window.set_child(Some(&gtkbox_general));
     window.present();
 }
 
