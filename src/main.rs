@@ -1,19 +1,11 @@
-use std::fs::read_to_string;
-use std::io;
 
 use glib::clone;
-use glib::property::PropertyGet;
-// glib and other dependencies are re-exported by the gtk crate
 use gtk::glib;
 use gtk::prelude::*;
 use gtk::AlertDialog;
-use gtk::MessageDialog;
 
-// When the application is launched…
 fn on_activate(application: &gtk::Application) {
-    // … create a new window …
     let window = gtk::ApplicationWindow::new(application);
-    // … with a button in it …
     let exit_button = gtk::Button::builder()
         .label("Exit App")
         .margin_bottom(10)
@@ -32,7 +24,6 @@ fn on_activate(application: &gtk::Application) {
         .margin_start(20)
         .margin_end(20)
         .build();
-    // … which closes the window when clicked
     exit_button.connect_clicked(clone!(@weak window => move |_| window.close()));
     let choose_file_button = gtk::Button::builder()
         .label("Choose file")
