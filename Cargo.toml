@@ -5,6 +5,9 @@ edition = "2021"
 
 [dependencies]
 gio = "0.19.8"
+gl = "0.14.0"
+gl_loader = "0.1.2"
 glib = "0.19.9"
 gsk = { version = "0.8.2", package = "gsk4"}
 gtk = { version = "0.8.2", package = "gtk4", features = ["v4_14"] }
+obj-rs = "0.7.1"
