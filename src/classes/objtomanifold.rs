@@ -1,5 +1,6 @@
 use obj;
 
 pub struct objtomanifold {
-    vertices : Vec<f32>
+    vertices : Vec<[f32;3]>
+
 }
