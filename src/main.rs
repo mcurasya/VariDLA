@@ -1,6 +1,8 @@
 use blue_engine::{header::Engine, primitive_shapes::cube};
+use classes::objtomanifold::objtomanifold;
 use obj::{self};
 use rfd;
+mod classes;
 use std::fs::File;
 use std::io::BufReader;
 fn main() {
@@ -15,7 +17,7 @@ fn main() {
         obj::load_obj(buffer).expect("error happened while loading model");
     let mut engine = Engine::new().expect("win");
 
-    cube("Cube", &mut engine.renderer, &mut engine.objects).unwrap();
+    let indices = model.indices[..].to_vec();
     engine
         .objects
         .new_object(
@@ -35,48 +37,23 @@ fn main() {
                     }
                 })
                 .collect(),
-            model.indices,
+            indices,
             blue_engine::ObjectSettings {
                 ..Default::default()
             },
             &mut engine.renderer,
         )
         .unwrap();
-    // engine
-    //     .objects
-    //     .get_mut("head")
-    //     .unwrap()
-    //     .set_color(1f32, 1f32, 0f32, 1f32)
-    //     .unwrap();
-    engine
-        .objects
-        .get_mut("head")
-        .unwrap()
-        .set_position(0.0, 0.0, 0.0);
-    //let texturefp = rfd::FileDialog::new()
-    // .set_directory(&path)
-    // .pick_file()
-    // .unwrap();
-    // let textur
-    // let texturefp = rfd::FileDialog::new()
-    // .set_directory(&path)
-    // .pick_file()
-    // .unwrap();
-    // let texture = ImageReader::open(texturefp).unwrap().decode().unwrap();
-    // engine
-    //     .objects
-    //     .get_mut("head")
-    //     .unwrap().set_texture(texture).unwrap();
-    // uv_sphere("sphere", (50, 50, 2f32), &mut engine.renderer, &mut  engine.objects).unwrap();
-    // engine.objects.get_mut("sphere").unwrap().set_color(1f32, 0.0, 0.0, 1.0).unwrap();
-    // engine.objects.get_mut("sphere").unwrap().set_translation(5f32, 0f32, 0f32);
-    let radius = 40f32;
+        let radius = 40f32;
     let start = std::time::SystemTime::now();
+    let object = objtomanifold::new(&model);
     engine
-        .update_loop(move |_, _, _, _, camera, _| {
+        .update_loop(move |_, _, objStorage, _, camera, _| {
             let camx = start.elapsed().unwrap().as_secs_f32().sin() * radius;
             let camy = start.elapsed().unwrap().as_secs_f32().sin() * radius;
             let camz = start.elapsed().unwrap().as_secs_f32().cos() * radius;
+            objStorage.get_mut("head").unwrap();
+
             camera
                 .set_position(camx, camy, camz)
                 .expect("Couldn't update the camera eye");
