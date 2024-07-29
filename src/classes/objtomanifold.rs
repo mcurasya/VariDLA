@@ -1,31 +1,57 @@
-use std::{io::Error, rc::{Rc}};
-
-use blue_engine::winit::error::NotSupportedError;
-use obj::{self, raw::object};
+use petgraph::graph::UnGraph;
 use petgraph::prelude::*;
-use petgraph::graph::{NodeIndex, UnGraph};
-use petgraph::algo::{dijkstra, min_spanning_tree};
-use petgraph::data::FromElements;
-use petgraph::dot::{Dot, Config};
-
-
-struct Vertex (f32, f32, f32);
-
+use std::collections::hash_set::Iter;
+use std::io::Error;
+#[derive(Clone, Copy, Debug)]
+pub struct Vertex {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+}
+#[derive(Clone)]
 pub struct objtomanifold {
-    graph: GraphMap<Vertex, (), Undirected>
+    pub graph: UnGraph<Vertex, ()>,
+    // dividedGraph: UnGraph<Vertex, ()>,
 }
 
-
 impl objtomanifold {
-    pub fn new(loaded_object:&obj::Obj<obj::TexturedVertex>) -> Result<objtomanifold, Error> {
+    pub fn new(loaded_object: &obj::Obj<obj::TexturedVertex>) -> Result<objtomanifold, Error> {
         let positions = &loaded_object.vertices;
-        let mut graph = UnGraph::<objtomanifold, ()>::new_undirected();
-        
-        Err(Error::new(std::io::ErrorKind::NotFound, "not finished realizing"))
+        let mut graph = UnGraph::<Vertex, ()>::new_undirected();
+        let mut index = 1;
+        for vertex in positions {
+            let index = graph.add_node(Vertex {
+                x: vertex.position[0],
+                y: vertex.position[1],
+                z: vertex.position[2],
+            });
+        }
+        let indices: Vec<_> = (0..loaded_object.indices.len())
+            .into_iter()
+            .step_by(3)
+            .collect();
+        for index in indices {
+            graph.update_edge(
+                NodeIndex::new((loaded_object.indices[index]) as usize),
+                NodeIndex::new((loaded_object.indices[index + 1]) as usize),
+                (),
+            );
+            graph.update_edge(
+                NodeIndex::new((loaded_object.indices[index]) as usize),
+                NodeIndex::new((loaded_object.indices[index + 2]) as usize),
+                (),
+            );
+            graph.update_edge(
+                NodeIndex::new((loaded_object.indices[index + 1]) as usize),
+                NodeIndex::new((loaded_object.indices[index + 2]) as usize),
+                (),
+            );
+        }
+        Ok(objtomanifold { graph })
     }
 
     fn distance_from_vertex(v: &Vertex, x: f32, y: f32, z: f32) -> f32 {
-        ((x - v.0).powi(2) + (y - v.1).powi(2) + (z - v.2).powi(2)).sqrt()
+        ((x - v.x).powi(2) + (y - v.y).powi(2) + (z - v.z).powi(2)).sqrt()
     }
     // pub fn get_n_nearest_points(
     //     &self,

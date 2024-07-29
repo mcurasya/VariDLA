@@ -1,2 +1,2 @@
 pub mod objtomanifold;
-use obj;
+pub mod dlamanif;
