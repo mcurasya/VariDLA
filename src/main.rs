@@ -56,7 +56,6 @@ fn main() {
             &mut engine.renderer,
         )
         .unwrap();
-    let radius = 4f32;
     let start = std::time::SystemTime::now();
     let object = objtomanifold::new(&model).unwrap();
     let not_moving = object.graph.node_weight(NodeIndex::new(4)).unwrap();
@@ -126,11 +125,10 @@ fn main() {
         .objects
         .get_mut(&starting_particle.name.clone())
         .unwrap()
-        .set_color(1.0, 1.0, 0.0, 1.0)
+        .set_color(0.0, 1.0, 0.0, 1.0)
         .unwrap();
+    let radius = 40f32;
     let camx = start.elapsed().unwrap().as_secs_f32().sin() * radius;
-    let camy = start.elapsed().unwrap().as_secs_f32().sin() * radius;
-    let camz = start.elapsed().unwrap().as_secs_f32().cos() * radius;
     engine
         .update_loop(move |renderer, _, objStorage, _, camera, _| {
             let neighbours = object.graph.neighbors_undirected(NodeIndex::new(
@@ -144,13 +142,12 @@ fn main() {
             starting_particle.z = new_vert.z;
 
             let rendered = objStorage.get_mut(&starting_particle.name).unwrap();
-            rendered
-                .set_position(
-                    starting_position.x,
-                    starting_position.y,
-                    starting_position.z,
-                );
-                rendered.update(renderer).unwrap();
+            rendered.set_position(
+                starting_particle.x,
+                starting_particle.y,
+                starting_particle.z,
+            );
+            rendered.update(renderer).unwrap();
             println!(
                 "value: {:#?}, rendered:{:#?}",
                 (
@@ -160,13 +157,16 @@ fn main() {
                 ),
                 rendered.position
             );
+
+            let camy = start.elapsed().unwrap().as_secs_f32().sin() * radius;
+            let camz = start.elapsed().unwrap().as_secs_f32().cos() * radius;
             camera
                 .set_position(camx, camy, camz)
                 .expect("Couldn't update the camera eye");
 
-            let ten_millis = time::Duration::from_millis(100);
+            // let ten_millis = time::Duration::from_millis(100);
 
-            thread::sleep(ten_millis);
+            // thread::sleep(ten_millis);
         })
         .expect("Error during update loop");
 }
