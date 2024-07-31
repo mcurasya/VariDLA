@@ -1,23 +1,14 @@
 use blue_engine::header::Engine;
 use blue_engine::primitive_shapes::uv_sphere;
-use blue_engine::Vertex;
 use classes::dlamanif::Particle;
 use classes::objtomanifold::ObjToManifold;
-use gl::GREATER;
 use obj::{self};
 use petgraph::graph::NodeIndex;
-use petgraph::visit::{EdgeRef, NodeRef};
-use rand::seq::IteratorRandom;
+use petgraph::visit::EdgeRef;
 use rfd;
-mod classes;
-use rand;
-use std::cell::RefCell;
 use std::fs::File;
 use std::io::BufReader;
-use std::ops::{Deref, DerefMut};
-use std::rc::Rc;
-use std::thread;
-use std::time;
+mod classes;
 fn main() {
     let path = std::env::current_dir().unwrap();
     let filepath = rfd::FileDialog::new()

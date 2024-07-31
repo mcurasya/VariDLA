@@ -1,13 +1,7 @@
-use std::cell::RefCell;
-use std::rc::Rc;
 
 use petgraph::adj::NodeIndex;
-use petgraph::graph::Node;
 
-use crate as classes;
 
-use super::objtomanifold::ObjToManifold;
-use super::objtomanifold::Vertex;
 #[derive(Debug)]
 pub struct Particle {
     pub x: f32,

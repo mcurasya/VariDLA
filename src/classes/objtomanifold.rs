@@ -1,6 +1,5 @@
 use petgraph::graph::UnGraph;
 use petgraph::prelude::*;
-use std::collections::hash_set::Iter;
 use std::io::Error;
 #[derive(Clone, Copy, Debug)]
 pub struct Vertex {
