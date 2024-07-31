@@ -6,7 +6,7 @@ use petgraph::graph::Node;
 
 use crate as classes;
 
-use super::objtomanifold::objtomanifold;
+use super::objtomanifold::ObjToManifold;
 use super::objtomanifold::Vertex;
 #[derive(Debug)]
 pub struct Particle {

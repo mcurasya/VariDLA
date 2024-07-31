@@ -9,18 +9,19 @@ pub struct Vertex {
     pub z: f32,
 }
 #[derive(Clone)]
-pub struct objtomanifold {
+pub struct ObjToManifold {
     pub graph: UnGraph<Vertex, ()>,
     // dividedGraph: UnGraph<Vertex, ()>,
 }
 
-impl objtomanifold {
-    pub fn new(loaded_object: &obj::Obj<obj::TexturedVertex>) -> Result<objtomanifold, Error> {
+impl ObjToManifold {
+    pub fn new(loaded_object: &obj::Obj<obj::TexturedVertex>) -> Result<ObjToManifold, Error> {
         let positions = &loaded_object.vertices;
+        println!("{:#?}",positions.len());
+        println!("{:#?}",positions);
         let mut graph = UnGraph::<Vertex, ()>::new_undirected();
-        let mut index = 1;
         for vertex in positions {
-            let index = graph.add_node(Vertex {
+            graph.add_node(Vertex {
                 x: vertex.position[0],
                 y: vertex.position[1],
                 z: vertex.position[2],
@@ -30,6 +31,9 @@ impl objtomanifold {
             .into_iter()
             .step_by(3)
             .collect();
+        println!("{:#?}", loaded_object.indices);
+        println!("{:#?}", indices);
+        println!("{:#?}", loaded_object.indices.iter().step_by(3).collect::<Vec<_>>());
         for index in indices {
             graph.update_edge(
                 NodeIndex::new((loaded_object.indices[index]) as usize),
@@ -46,8 +50,23 @@ impl objtomanifold {
                 NodeIndex::new((loaded_object.indices[index + 2]) as usize),
                 (),
             );
+            graph.update_edge(
+                NodeIndex::new((loaded_object.indices[index + 1]) as usize),
+                NodeIndex::new((loaded_object.indices[index]) as usize),
+                (),
+            );
+            graph.update_edge(
+                NodeIndex::new((loaded_object.indices[index + 2]) as usize),
+                NodeIndex::new((loaded_object.indices[index]) as usize),
+                (),
+            );
+            graph.update_edge(
+                NodeIndex::new((loaded_object.indices[index + 2]) as usize),
+                NodeIndex::new((loaded_object.indices[index + 1]) as usize),
+                (),
+            );
         }
-        Ok(objtomanifold { graph })
+        Ok(ObjToManifold { graph })
     }
 
     fn distance_from_vertex(v: &Vertex, x: f32, y: f32, z: f32) -> f32 {
