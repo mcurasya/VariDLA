@@ -4,7 +4,6 @@ use classes::dlamanif::Particle;
 use classes::objtomanifold::ObjToManifold;
 use obj::{self};
 use petgraph::graph::NodeIndex;
-use petgraph::visit::EdgeRef;
 use rand::seq::IteratorRandom;
 use rfd;
 use std::fs::File;
