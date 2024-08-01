@@ -1,5 +1,7 @@
+use obj::TexturedVertex;
 use petgraph::graph::UnGraph;
 use petgraph::prelude::*;
+use std::collections::{hash_map, HashMap, HashSet};
 use std::io::Error;
 #[derive(Clone, Copy, Debug)]
 pub struct Vertex {
@@ -15,56 +17,62 @@ pub struct ObjToManifold {
 
 impl ObjToManifold {
     pub fn new(loaded_object: &obj::Obj<obj::TexturedVertex>) -> Result<ObjToManifold, Error> {
-        let positions = &loaded_object.vertices;
-        println!("{:#?}",positions.len());
-        println!("{:#?}",positions);
+        let unprocessed_vertices = &loaded_object.vertices;
         let mut graph = UnGraph::<Vertex, ()>::new_undirected();
-        for vertex in positions {
-            graph.add_node(Vertex {
-                x: vertex.position[0],
-                y: vertex.position[1],
-                z: vertex.position[2],
+        let mut processed_vertices = Vec::<Vertex>::new();
+        let mut association = HashMap::new();
+        for (index, vertex) in unprocessed_vertices.iter().enumerate() {
+            let found_position = processed_vertices.iter().position(|&obj| {
+                obj.x == vertex.position[0]
+                    && obj.y == vertex.position[1]
+                    && obj.z == vertex.position[2]
             });
+            match found_position {
+                Some(val) => {
+                    association.insert(index, val);
+                }
+                None => {
+                    processed_vertices.push(Vertex {
+                        x: vertex.position[0],
+                        y: vertex.position[1],
+                        z: vertex.position[2],
+                    });
+                    association.insert(index, index);
+                }
+            }
         }
+        for vert in &processed_vertices {
+            graph.add_node(*vert);
+        }
+        let processed_indices: Vec<&usize> = loaded_object
+            .indices
+            .iter()
+            .map(|&index| association.get(&(index as usize)).unwrap())
+            .collect();
         let indices: Vec<_> = (0..loaded_object.indices.len())
             .into_iter()
             .step_by(3)
             .collect();
-        println!("{:#?}", loaded_object.indices);
-        println!("{:#?}", indices);
-        println!("{:#?}", loaded_object.indices.iter().step_by(3).collect::<Vec<_>>());
-        for index in indices {
-            graph.update_edge(
-                NodeIndex::new((loaded_object.indices[index]) as usize),
-                NodeIndex::new((loaded_object.indices[index + 1]) as usize),
-                (),
-            );
-            graph.update_edge(
-                NodeIndex::new((loaded_object.indices[index]) as usize),
-                NodeIndex::new((loaded_object.indices[index + 2]) as usize),
-                (),
-            );
-            graph.update_edge(
-                NodeIndex::new((loaded_object.indices[index + 1]) as usize),
-                NodeIndex::new((loaded_object.indices[index + 2]) as usize),
-                (),
-            );
-            graph.update_edge(
-                NodeIndex::new((loaded_object.indices[index + 1]) as usize),
-                NodeIndex::new((loaded_object.indices[index]) as usize),
-                (),
-            );
-            graph.update_edge(
-                NodeIndex::new((loaded_object.indices[index + 2]) as usize),
-                NodeIndex::new((loaded_object.indices[index]) as usize),
-                (),
-            );
-            graph.update_edge(
-                NodeIndex::new((loaded_object.indices[index + 2]) as usize),
-                NodeIndex::new((loaded_object.indices[index + 1]) as usize),
-                (),
-            );
+        for proc_index in &indices {
+            graph.add_edge(NodeIndex::new(*processed_indices[*proc_index]), NodeIndex::new(*processed_indices[*proc_index+1]), ());
+            graph.add_edge(NodeIndex::new(*processed_indices[*proc_index]), NodeIndex::new(*processed_indices[*proc_index+2]), ());
+            graph.add_edge(NodeIndex::new(*processed_indices[*proc_index+1]), NodeIndex::new(*processed_indices[*proc_index+2]), ());
         }
+        println!("{:#?}", loaded_object.indices);
+        println!("{:#?}", &processed_vertices.len());
+        println!("{:#?}", &processed_vertices);
+        println!("{:#?}", &processed_indices);
+        println!("{:#?}", &indices);
+        println!(
+            "{:#?}",
+            loaded_object
+                .indices
+                .iter()
+                .map(|&index| { association.get(&(index as usize)) })
+                .step_by(3)
+                .collect::<Vec<_>>()
+        );
+
         Ok(ObjToManifold { graph })
     }
 

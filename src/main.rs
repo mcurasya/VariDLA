@@ -5,9 +5,12 @@ use classes::objtomanifold::ObjToManifold;
 use obj::{self};
 use petgraph::graph::NodeIndex;
 use petgraph::visit::EdgeRef;
+use rand::seq::IteratorRandom;
 use rfd;
 use std::fs::File;
 use std::io::BufReader;
+use std::time;
+use std::thread;
 mod classes;
 fn main() {
     let path = std::env::current_dir().unwrap();
@@ -120,55 +123,55 @@ fn main() {
         .unwrap();
     let radius = 4f32;
     let mut i = 1;
-    for edge in graph.edge_references() {
-        let eps = 0.01;
-        let s = graph.node_weight(edge.source()).unwrap();
-        let d = graph.node_weight(edge.target()).unwrap();
-        engine
-            .objects
-            .new_object(
-                String::from("edge") + &i.to_string(),
-                vec![
-                    blue_engine::Vertex {
-                        position: [s.x - eps, s.y - eps, s.z - eps],
-                        uv: [0.0, 0.0],
-                        normal: [0f32, 0f32, 0f32],
-                    },
-                    blue_engine::Vertex {
-                        position: [s.x + eps, s.y + eps, s.z + eps],
-                        uv: [0.0, 1.0],
-                        normal: [0f32, 0f32, 0f32],
-                    },
-                    blue_engine::Vertex {
-                        position: [d.x + eps, d.y + eps, d.z + eps],
-                        uv: [1.0, 0.0],
-                        normal: [0f32, 0f32, 0f32],
-                    },
-                    blue_engine::Vertex {
-                        position: [d.x - eps, d.y - eps, d.z - eps],
-                        uv: [1.0, 1.0],
-                        normal: [0f32, 0f32, 0f32],
-                    },
-                ],
-                vec![0, 1, 2, 0, 2, 3],
-                blue_engine::ObjectSettings::default(),
-                &mut engine.renderer,
-            )
-            .unwrap();
-        engine
-            .objects
-            .get_mut(&(String::from("edge") + &i.to_string()))
-            .unwrap()
-            .set_color(0.0, 0.0, 1.0, 1.0)
-            .unwrap();
-        i += 1;
-    }
+    // for edge in graph.edge_references() {
+    //     let eps = 0.01;
+    //     let s = graph.node_weight(edge.source()).unwrap();
+    //     let d = graph.node_weight(edge.target()).unwrap();
+    //     engine
+    //         .objects
+    //         .new_object(
+    //             String::from("edge") + &i.to_string(),
+    //             vec![
+    //                 blue_engine::Vertex {
+    //                     position: [s.x - eps, s.y - eps, s.z - eps],
+    //                     uv: [0.0, 0.0],
+    //                     normal: [0f32, 0f32, 0f32],
+    //                 },
+    //                 blue_engine::Vertex {
+    //                     position: [s.x + eps, s.y + eps, s.z + eps],
+    //                     uv: [0.0, 1.0],
+    //                     normal: [0f32, 0f32, 0f32],
+    //                 },
+    //                 blue_engine::Vertex {
+    //                     position: [d.x + eps, d.y + eps, d.z + eps],
+    //                     uv: [1.0, 0.0],
+    //                     normal: [0f32, 0f32, 0f32],
+    //                 },
+    //                 blue_engine::Vertex {
+    //                     position: [d.x - eps, d.y - eps, d.z - eps],
+    //                     uv: [1.0, 1.0],
+    //                     normal: [0f32, 0f32, 0f32],
+    //                 },
+    //             ],
+    //             vec![0, 1, 2, 0, 2, 3],
+    //             blue_engine::ObjectSettings::default(),
+    //             &mut engine.renderer,
+    //         )
+    //         .unwrap();
+    //     engine
+    //         .objects
+    //         .get_mut(&(String::from("edge") + &i.to_string()))
+    //         .unwrap()
+    //         .set_color(0.0, 0.0, 1.0, 1.0)
+    //         .unwrap();
+    //     i += 1;
+    // }
     engine
         .update_loop(move |renderer, _, obj_storage, _, camera, _| {
-            let mut neighbours = object.graph.neighbors_undirected(NodeIndex::new(
+            let neighbours = object.graph.neighbors_undirected(NodeIndex::new(
                 **starting_particle.vertex_index.as_ref().unwrap() as usize,
             ));
-            let chosen = neighbours.nth(0).unwrap();
+            let chosen = neighbours.choose(&mut rand::thread_rng()).unwrap();
             let new_vert = object.graph.node_weight(chosen).unwrap();
             starting_particle.vertex_index = Some(Box::new(chosen.index() as u32));
             starting_particle.x = new_vert.x;
@@ -189,9 +192,9 @@ fn main() {
             camera
                 .set_position(camx, camy, camz)
                 .expect("Couldn't update the camera eye");
-            // let ten_millis = time::Duration::from_millis(100);
+            let ten_millis = time::Duration::from_millis(100);
 
-            // thread::sleep(ten_millis);
+            thread::sleep(ten_millis);
         })
         .expect("Error during update loop");
 }
