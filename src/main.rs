@@ -191,9 +191,6 @@ fn main() {
             camera
                 .set_position(camx, camy, camz)
                 .expect("Couldn't update the camera eye");
-            let ten_millis = time::Duration::from_millis(100);
-
-            thread::sleep(ten_millis);
         })
         .expect("Error during update loop");
 }
